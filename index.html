@@ -208,7 +208,7 @@ body {
 .progress-dot {
   position:absolute; top:50%; left:33%;
   width:10px; height:10px; border-radius:50%;
-  background:var(--acc);
+  background:var(--bg);
   box-shadow:2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light);
   transform:translate(-50%,-50%); cursor:grab; z-index:2;
   margin-top:0;
@@ -476,7 +476,7 @@ function startHold(e){
   if(crateOpen) return;
   e.preventDefault();
   let elapsed=0;
-  holdAnim=setInterval(()=>{
+  holdAnim=setInterval(()=>{\
     elapsed+=16;
     const pct=Math.min(elapsed/HOLD_MS,1);
     holdCircle.style.strokeDasharray=`${pct*circ} ${circ}`;
@@ -489,8 +489,11 @@ function startHold(e){
   },16);
 }
 function cancelHold(){
-  if(holdAnim){clearInterval(holdAnim);holdAnim=null;}
-  holdCircle.style.strokeDasharray=`0 ${circ}`;
+  if(holdAnim){
+    clearInterval(holdAnim);holdAnim=null;
+    holdCircle.style.strokeDasharray=`0 ${circ}`;
+    if(!crateOpen)setPlaying(!playing);
+  }
 }
 
 vinylWrap.addEventListener('mousedown',startHold);
@@ -508,7 +511,6 @@ vinylWrap.addEventListener('mouseleave',()=>{
 });
 document.addEventListener('mouseup',cancelHold);
 document.addEventListener('touchend',cancelHold);
-vinylWrap.addEventListener('click',()=>{if(!crateOpen)setPlaying(!playing);});
 
 crateOver.addEventListener('click',e=>{
   if(e.target===crateOver||e.target.classList.contains('crate-handle'))closeCrate();
