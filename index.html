@@ -472,15 +472,18 @@ function closeCrate(){
   songInfo.style.pointerEvents='';
 }
 
+let wasLongPress=false;
 function startHold(e){
   if(crateOpen) return;
   e.preventDefault();
+  wasLongPress=false;
   let elapsed=0;
-  holdAnim=setInterval(()=>{\
+  holdAnim=setInterval(()=>{
     elapsed+=16;
     const pct=Math.min(elapsed/HOLD_MS,1);
     holdCircle.style.strokeDasharray=`${pct*circ} ${circ}`;
     if(elapsed>=HOLD_MS){
+      wasLongPress=true;
       clearInterval(holdAnim);holdAnim=null;
       holdCircle.style.strokeDasharray=`0 ${circ}`;
       if(playing)setPlaying(false);
@@ -489,11 +492,10 @@ function startHold(e){
   },16);
 }
 function cancelHold(){
-  if(holdAnim){
-    clearInterval(holdAnim);holdAnim=null;
-    holdCircle.style.strokeDasharray=`0 ${circ}`;
-    if(!crateOpen)setPlaying(!playing);
-  }
+  if(holdAnim){clearInterval(holdAnim);holdAnim=null;}
+  holdCircle.style.strokeDasharray=`0 ${circ}`;
+  if(!wasLongPress&&!crateOpen)setPlaying(!playing);
+  wasLongPress=false;
 }
 
 vinylWrap.addEventListener('mousedown',startHold);
