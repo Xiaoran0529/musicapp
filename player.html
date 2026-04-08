@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Player</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -27,10 +27,14 @@ body {
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   overflow:hidden; transition:background var(--tr);
 }
+.iphone {
+  transform-origin:top center;
+}
 
 .iphone {
   width:375px; height:720px;
   background:var(--bg); border-radius:50px;
+  box-shadow:none;
   position:relative; overflow:hidden;
   display:flex; flex-direction:column; align-items:center;
   transition:background var(--tr),box-shadow var(--tr);
@@ -545,6 +549,17 @@ timeTotal.textContent=fmt(tracks[0].dur);
 holdCircle.style.strokeDasharray=`0 ${circ}`;
 updateProgress();
 })();
+</script>
+<script>
+function scaleIphone(){
+  const iphone=document.querySelector('.iphone');
+  const scaleX=window.innerWidth/375;
+  const scaleY=window.innerHeight/720;
+  const scale=Math.min(scaleX,scaleY,1);
+  iphone.style.transform=`scale(${scale})`;
+}
+scaleIphone();
+window.addEventListener('resize',scaleIphone);
 </script>
 </body>
 </html>
