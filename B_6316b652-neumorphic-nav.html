@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拟物风格悬浮导航栏</title>
+<style>
+
+/* ============================================================
+   CSS Variables — 主题色板，所有主题在这里切换
+   ============================================================ */
+:root {
+  --bg:        #e0e5eb;   /* 页面 & 元件主色 */
+  --shadow-dark: #b8bdc4; /* 深侧阴影 */
+  --shadow-light: #ffffff; /* 浅侧阴影 / 高光 */
+  --pressed-bg: #d6dbdf;  /* 凹陷按钮面色（比主色略深） */
+  --icon-stroke: #a3aebb; /* 图标描线色 */
+  --icon-hover:  #7d8fa5;
+  --icon-pressed:#929da9;
+  --label-color: #9da8b5;
+}
+
+body.theme-blue {
+  --bg:          #c6d6e8;
+  --shadow-dark: #a2b2c4;
+  --shadow-light:#eaf2f8;
+  --pressed-bg:  #bdd0e2;
+  --icon-stroke: #7aabcc;
+  --icon-hover:  #4e8aad;
+  --icon-pressed:#6a9cbe;
+  --label-color: #6fa3d0;
+}
+
+body.theme-gray {
+  --bg:          #c2c5c8;
+  --shadow-dark: #9ea1a4;
+  --shadow-light:#e6e7e8;
+  --pressed-bg:  #b8bbbe;
+  --icon-stroke: #888d92;
+  --icon-hover:  #636871;
+  --icon-pressed:#7c8186;
+  --label-color: #858a8f;
+}
+
+/* 红色主题 — 暖粉红底，阴影偏玫瑰深/浅 */
+body.theme-red {
+  --bg:          #e8d6d6;
+  --shadow-dark: #c4b0b0;
+  --shadow-light:#fff0f0;
+  --pressed-bg:  #dccaca;
+  --icon-stroke: #c08080;
+  --icon-hover:  #a05555;
+  --icon-pressed:#b06a6a;
+  --label-color: #c07070;
+}
+
+/* 绿色主题 — 清淡薄荷底，阴影偏青绿深/浅 */
+body.theme-green {
+  --bg:          #d6e8d8;
+  --shadow-dark: #b0c4b2;
+  --shadow-light:#f0fff2;
+  --pressed-bg:  #caddcc;
+  --icon-stroke: #7ab88a;
+  --icon-hover:  #4d9a60;
+  --icon-pressed:#68a878;
+  --label-color: #6aad7a;
+}
+
+/* 蓝紫主题 — 柔紫底，阴影偏靛蓝深/浅 */
+body.theme-purple {
+  --bg:          #ddd6e8;
+  --shadow-dark: #b8b0c4;
+  --shadow-light:#f2f0ff;
+  --pressed-bg:  #d4cade;
+  --icon-stroke: #9a80c0;
+  --icon-hover:  #7050a0;
+  --icon-pressed:#8868b0;
+  --label-color: #8e70b8;
+}
+
+/* ============================================================
+   全局
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 60px 20px;
+  background: var(--bg);
+  transition: background 0.45s ease;
+}
+
+/* ============================================================
+   主题切换器
+   ============================================================ */
+.theme-switcher {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 20px;
+  background: var(--bg);
+  box-shadow:
+    4px 4px 10px var(--shadow-dark),
+    -4px -4px 10px var(--shadow-light);
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+
+.theme-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--label-color);
+  margin-right: 4px;
+  transition: color 0.45s ease;
+}
+
+.theme-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  background: var(--bg);
+  box-shadow:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+  transition: box-shadow 0.35s ease, background 0.45s ease;
+}
+
+.theme-dot.active {
+  box-shadow:
+    inset 2px 2px 4px var(--shadow-dark),
+    inset -2px -2px 4px var(--shadow-light);
+}
+
+.theme-dot::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.theme-dot.white::after  { background: #eef0f2; }
+.theme-dot.blue::after   { background: linear-gradient(135deg,#5da0d0,#3d7ab8); }
+.theme-dot.gray::after   { background: linear-gradient(135deg,#8a8f95,#6b7078); }
+.theme-dot.red::after    { background: linear-gradient(135deg,#e07070,#c04848); }
+.theme-dot.green::after  { background: linear-gradient(135deg,#60b870,#3a9a4a); }
+.theme-dot.purple::after { background: linear-gradient(135deg,#a070d0,#7848b8); }
+
+/* ============================================================
+   导航栏容器 — 长方形带圆角，外凸
+   ============================================================ */
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  border-radius: 28px;
+  gap: 14px;
+  background: var(--bg);
+  box-shadow:
+    10px 10px 20px var(--shadow-dark),
+    -10px -10px 20px var(--shadow-light);
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+
+/* ============================================================
+   按钮 — 基础
+   ============================================================ */
+.nav-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  /* 所有状态切换都走这个过渡 */
+  transition:
+    box-shadow 0.22s cubic-bezier(.4,0,.2,1),
+    background 0.22s cubic-bezier(.4,0,.2,1),
+    transform 0.15s cubic-bezier(.4,0,.2,1),
+    background-color 0.45s ease;
+}
+
+/* ============================================================
+   凸起状态 — 外向阴影，鼓起感
+   ============================================================ */
+.nav-btn.raised {
+  box-shadow:
+    7px 7px 14px var(--shadow-dark),
+    -7px -7px 14px var(--shadow-light);
+}
+
+.nav-btn.raised:hover {
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+}
+
+/* ============================================================
+   凹陷状态 — 内向阴影，按下感
+   深侧阴影用 rgba 叠加让对比更明显
+   ============================================================ */
+.nav-btn.pressed {
+  background: var(--pressed-bg);
+  box-shadow:
+    inset 5px 5px 10px var(--shadow-dark),
+    inset -4px -4px 8px var(--shadow-light),
+    inset 2px 2px 4px rgba(0,0,0,0.08);
+}
+
+/* ============================================================
+   图标
+   ============================================================ */
+.nav-btn svg {
+  width: 21px;
+  height: 21px;
+  stroke: var(--icon-stroke);
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.25s ease;
+  pointer-events: none;
+}
+
+.nav-btn.raised:hover svg {
+  stroke: var(--icon-hover);
+}
+
+.nav-btn.pressed svg {
+  stroke: var(--icon-pressed);
+}
+
+/* ============================================================
+   按钮点击瞬间的弹性缩放反馈
+   ============================================================ */
+.nav-btn.click-feedback {
+  transform: scale(0.94);
+}
+
+</style>
+</head>
+<body>
+
+<!-- 主题切换器 -->
+<div class="theme-switcher">
+  <span class="theme-label">Theme</span>
+  <div class="theme-dot white  active" data-theme="white"></div>
+  <div class="theme-dot blue"          data-theme="blue"></div>
+  <div class="theme-dot gray"          data-theme="gray"></div>
+  <div class="theme-dot red"           data-theme="red"></div>
+  <div class="theme-dot green"         data-theme="green"></div>
+  <div class="theme-dot purple"        data-theme="purple"></div>
+</div>
+
+<!-- 导航栏（唯一一组） -->
+<nav class="nav-container">
+
+  <!-- 主页 — 默认激活（pressed） -->
+  <button class="nav-btn pressed" data-btn="home">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 9.5L12 2.5l9 7V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
+      <polyline points="9,21 9,13 15,13 15,21"/>
+    </svg>
+  </button>
+
+  <!-- 添加 -->
+  <button class="nav-btn raised" data-btn="add">
+    <svg viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- 卡包 -->
+  <button class="nav-btn raised" data-btn="wallet">
+    <svg viewBox="0 0 24 24">
+      <rect x="2" y="5" width="20" height="14" rx="2.5" ry="2.5"/>
+      <line x1="2" y1="10" x2="22" y2="10"/>
+    </svg>
+  </button>
+
+  <!-- 设置 -->
+  <button class="nav-btn raised" data-btn="settings">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+  </button>
+
+</nav>
+
+<script>
+// ============================================================
+// 主题切换
+// ============================================================
+document.querySelectorAll('.theme-dot').forEach(dot => {
+  dot.addEventListener('click', function() {
+    const theme = this.dataset.theme;
+    document.body.classList.remove('theme-white','theme-blue','theme-gray','theme-red','theme-green','theme-purple');
+    if (theme !== 'white') document.body.classList.add('theme-' + theme);
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ============================================================
+// 导航按钮互切换：点击凸起 → 变凹陷，其余变凸起
+// ============================================================
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+
+    // 如果点的是已激活的，不做任何事
+    if (this.classList.contains('pressed')) return;
+
+    // 给当前按钮一个缩放动画反馈
+    this.classList.add('click-feedback');
+    setTimeout(() => this.classList.remove('click-feedback'), 150);
+
+    // 所有按钮 → raised
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.remove('pressed');
+      b.classList.add('raised');
+    });
+
+    // 当前按钮 → pressed
+    this.classList.remove('raised');
+    this.classList.add('pressed');
+  });
+});
+</script>
+
+</body>
+</html>
